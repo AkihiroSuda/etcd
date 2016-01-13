@@ -15,6 +15,7 @@
 package storage
 
 import (
+	"math/rand"
 	"os"
 	"reflect"
 	"testing"
@@ -25,6 +26,11 @@ import (
 	"github.com/coreos/etcd/storage/backend"
 	"github.com/coreos/etcd/storage/storagepb"
 )
+
+
+func randrange(min, max int) int {
+	return rand.Intn(max - min) + min
+}
 
 // Functional tests for features implemented in v3 store. It treats v3 store
 // as a black box, and tests it by feeding the input and validating the output.
@@ -430,7 +436,9 @@ func TestKVTxnBlockNonTnxOperations(t *testing.T) {
 		id := s.TxnBegin()
 		done := make(chan struct{})
 		go func() {
+			time.Sleep(time.Duration(randrange(10, 30)) * time.Millisecond)
 			tt()
+			time.Sleep(time.Duration(randrange(10, 30)) * time.Millisecond)
 			done <- struct{}{}
 		}()
 		select {
