@@ -1240,9 +1240,11 @@ func (s *EtcdServer) parseProposeCtxErr(err error, start time.Time) error {
 	case context.Canceled:
 		return ErrCanceled
 	case context.DeadlineExceeded:
+		plog.Warningf("in context.DeadlineExceeded")
 		curLeadElected := s.r.leadElectedTime()
 		prevLeadLost := curLeadElected.Add(-2 * time.Duration(s.Cfg.ElectionTicks) * time.Duration(s.Cfg.TickMs) * time.Millisecond)
 		if start.After(prevLeadLost) && start.Before(curLeadElected) {
+			plog.Warningf("returning ErrTimeoutDueToLeaderFail")
 			return ErrTimeoutDueToLeaderFail
 		}
 
@@ -1252,16 +1254,20 @@ func (s *EtcdServer) parseProposeCtxErr(err error, start time.Time) error {
 			// TODO: return error to specify it happens because the cluster does not have leader now
 		case s.ID():
 			if !isConnectedToQuorumSince(s.r.transport, start, s.ID(), s.cluster.Members()) {
+				plog.Warningf("returning ErrTimeoutDueToConnectionLost")
 				return ErrTimeoutDueToConnectionLost
 			}
 		default:
 			if !isConnectedSince(s.r.transport, start, lead) {
+				plog.Warningf("returning ErrTimeoutDueToConnectionLost")
 				return ErrTimeoutDueToConnectionLost
 			}
 		}
 
+		plog.Warningf("returning ErrTimeout")
 		return ErrTimeout
 	default:
+		plog.Warningf("returning err=%s", err)
 		return err
 	}
 }

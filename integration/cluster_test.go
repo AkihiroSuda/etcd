@@ -351,7 +351,9 @@ func clusterMustProgress(t *testing.T, membs []*member) {
 	key := fmt.Sprintf("foo%d", rand.Int())
 	resp, err := kapi.Create(ctx, "/"+key, "bar")
 	if err != nil {
-		t.Fatalf("create on %s error: %v", membs[0].URL(), err)
+		// t.Fatalf("create on %s error: %v", membs[0].URL(), err)
+		cerr := err.(*client.ClusterError)
+		t.Fatalf("create on %s error: %v(detail: %s)", membs[0].URL(), err, cerr.Detail())
 	}
 	cancel()
 
@@ -361,7 +363,10 @@ func clusterMustProgress(t *testing.T, membs []*member) {
 		mkapi := client.NewKeysAPI(mcc)
 		mctx, mcancel := context.WithTimeout(context.Background(), requestTimeout)
 		if _, err := mkapi.Watcher(key, &client.WatcherOptions{AfterIndex: resp.Node.ModifiedIndex - 1}).Next(mctx); err != nil {
-			t.Fatalf("#%d: watch on %s error: %v", i, u, err)
+			// t.Fatalf("#%d: watch on %s error: %v", i, u, err)
+			cerr := err.(*client.ClusterError)
+			t.Fatalf("#%d: watch on %s error: %v(detail: %s)", i, u, err, cerr.Detail())
+
 		}
 		mcancel()
 	}
