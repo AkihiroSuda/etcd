@@ -241,6 +241,7 @@ func TestIssue2746(t *testing.T) {
 	}
 
 	c.Launch(t)
+	c.waitLeader(t, c.Members)
 	defer c.Terminate(t)
 
 	// force a snapshot
